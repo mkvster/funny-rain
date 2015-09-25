@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <title>Funny Rain Game</title>
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <link rel="stylesheet" href="style.css" />
+
+    <!-- Libs -->
+    <script src="js/lib/jquery/dist/jquery.min.js"></script>
+    <script src="js/lib/gsap/src/minified/TweenMax.min.js"></script>
+    <script src="js/lib/pixi.js/bin/pixi.js"></script>
+    <script src="js/lib/box2dweb/Box2d.min.js"></script>
+    <script src="js/lib/boplex.js/bin/boplex.min.js"></script>
+
+    <!-- Application -->
+    <script src="js/funnyRain.min.js"></script>
+  </head>
+
+  <body>
+    <div id="funnyRain" class="game-container"></div>
+
+    <script type="text/javascript">
+      $(document).ready(function(){
+        var game = new FunnyRain.Game($('#funnyRain'));
+      })
+    </script>
+
+  </body>
+
+</html>

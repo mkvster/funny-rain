@@ -1,0 +1,12 @@
+{
+  "funnyRain" : {
+    "dstDir": "./js",
+    "srcDir": "./src",
+    "project": "./src/funnyRainProject.json"
+  },
+  "test": {
+    "dstDir": "./test",
+    "srcDir": "./test/src",
+    "project": "./test/src/testProject.json"
+  }
+}
