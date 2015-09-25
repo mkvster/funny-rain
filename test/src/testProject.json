@@ -1,0 +1,9 @@
+{
+  "name": "test",
+  "files":  [
+      "test.app.js"
+  ],
+  "dependencies": [
+    "./js/lib/boplex.js/bin/boplex.js"
+  ]
+}

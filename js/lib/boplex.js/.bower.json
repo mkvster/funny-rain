@@ -1,0 +1,40 @@
+{
+  "name": "boplex.js",
+  "version": "0.0.2",
+  "homepage": "https://github.com/mkvster/boplex.js",
+  "authors": [
+    "mkvster"
+  ],
+  "description": "Boilerplate experimental",
+  "main": "bin/boplex.js",
+  "keywords": [
+    "boilerplate",
+    "template",
+    "module",
+    "modularity",
+    "base class",
+    "class name",
+    "type info",
+    "inherit",
+    "inheritance",
+    "hierarchy",
+    "logger"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "_release": "0.0.2",
+  "_resolution": {
+    "type": "version",
+    "tag": "0.0.2",
+    "commit": "e529d9f241e8ceed9f8782606f7730068e1ed060"
+  },
+  "_source": "git://github.com/mkvster/boplex.js.git",
+  "_target": "~0.0.2",
+  "_originalSource": "boplex.js"
+}

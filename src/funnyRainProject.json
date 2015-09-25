@@ -1,0 +1,7 @@
+{
+  "name": "funnyRain",
+  "files":  [
+      "funnyRain.app.js",
+      "game.js"
+  ]
+}
