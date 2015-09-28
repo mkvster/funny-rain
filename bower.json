@@ -1,0 +1,23 @@
+{
+  "name": "funny-rain",
+  "authors": [
+    "mkvster"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "js/lib",
+    "test",
+    "tests",
+    "src"
+  ],
+  "dependencies": {
+    "boplex.js": "~0.0.3",
+    "box2dweb": "hecht-software/box2dweb",
+    "gsap": "~1.18.0",
+    "jquery": "~2.1.4",
+    "pixi.js": "~3.0.7"
+  }
+}
