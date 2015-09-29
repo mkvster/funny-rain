@@ -4,6 +4,7 @@
       "test.app.js"
   ],
   "dependencies": [
+    "test/src/libStub.js",
     "js/lib/boplex.js/bin/boplex.js"
   ]
 }

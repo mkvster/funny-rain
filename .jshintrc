@@ -6,6 +6,9 @@
   "quotmark": true,
   "undef": true,
   "unused": true,
-  "devel":true,
-  "strict":false
+  "devel": true,
+  "strict": false,
+  "-W030": true,
+  "-W034": true,
+  "-W098": true
 }

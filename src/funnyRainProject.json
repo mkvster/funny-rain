@@ -6,6 +6,15 @@
       "physics/baseWorld.js",
       "physics/rainWorld.js",
       "graphics/animFrame.js",
-      "graphics/view.js"
+      "graphics/view.js",
+      "plugins/pluginManager.js",
+      "plugins/basePlugin.js",
+      "plugins/blocks/blocksPlugin.js",
+      "plugins/blocks/blocksFactory.js",
+      "plugins/blocks/baseBlock.js",
+      "plugins/blocks/fruitBlock.js",
+      "plugins/blocks/bombBlock.js",
+      "plugins/fallingThings/fallingThingsPlugin.js",
+      "plugins/fallingThings/fallManager.js"
   ]
 }
