@@ -10,8 +10,14 @@
         "try",
         "catch"
     ],
+    "requireSpacesInFunctionDeclaration": {
+        "beforeOpeningRoundBrace": true,
+        "beforeOpeningCurlyBrace": true
+    },
+    "disallowNewlineBeforeBlockStatements": true,
+    "requireSemicolons": true,
     "requireOperatorBeforeLineBreak": true,
-    "requireCamelCaseOrUpperCaseIdentifiers": true,
+    "requireCamelCaseOrUpperCaseIdentifiers": false,
     "maximumLineLength": {
       "value": 100,
       "allowComments": true,

@@ -2,6 +2,10 @@
   "name": "funnyRain",
   "files":  [
       "funnyRain.app.js",
-      "game.js"
+      "game.js",
+      "physics/baseWorld.js",
+      "physics/rainWorld.js",
+      "graphics/animFrame.js",
+      "graphics/view.js"
   ]
 }
