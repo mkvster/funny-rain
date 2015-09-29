@@ -6,10 +6,9 @@ var uglify = require("gulp-uglify");
 var dest = require("gulp-dest");
 var jshint = require("gulp-jshint");
 var jscs = require("gulp-jscs");
-var runSeq  = require('run-sequence');
+var runSeq  = require("run-sequence");
 
-function buildApp(app, isMin, fileList)
-{
+function buildApp (app, isMin, fileList, isTest) {
   isMin = isMin || false;
   fileList = fileList || app.project.files;
   srcDir = app.srcDir;
@@ -27,6 +26,11 @@ function buildApp(app, isMin, fileList)
   if (isMin) {
     s2 = s1.pipe(uglify());
   }
+  else if (isTest) {
+    s2 = s1
+    .pipe(jshint())
+    .pipe(jshint.reporter("jshint-stylish", {verbose: true}));
+  }
   else {
     s2 = s1
     .pipe(jscs())
@@ -39,7 +43,7 @@ function buildApp(app, isMin, fileList)
 
 }
 
-gulp.task("build-bin", function(done){
+gulp.task("build-bin", function(done) {
   util.log(util.colors.blue("Build bin"));
   return buildApp(solution.funnyRain, true);
 });
@@ -54,7 +58,7 @@ gulp.task("build-test-dev", function(done){
   var fileList = solution.test.project.dependencies
     .concat(solution.funnyRain.project.files)
     .concat(solution.test.project.files);
-  return buildApp(solution.test, false, fileList);
+  return buildApp(solution.test, false, fileList, true);
 });
 
 gulp.task("build-test-bin", function(done){
@@ -62,9 +66,9 @@ gulp.task("build-test-bin", function(done){
   var fileList = solution.test.project.dependencies
     .concat(solution.funnyRain.project.files)
     .concat(solution.test.project.files);
-  return buildApp(solution.test, true, fileList);
+  return buildApp(solution.test, true, fileList, true);
 });
 
-gulp.task('build', function (done) {
-    runSeq('build-dev', 'build-bin', 'build-test-dev', 'build-test-bin', done);
+gulp.task("build", function (done) {
+  runSeq("build-dev", "build-bin", "build-test-dev", "build-test-bin", done);
 });
