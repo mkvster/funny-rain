@@ -1,0 +1,25 @@
+{
+    "excludeFiles": ["node_modules/**", "js/lib/**"],
+
+    "requireCurlyBraces": [
+        "if",
+        "else",
+        "for",
+        "while",
+        "do",
+        "try",
+        "catch"
+    ],
+    "requireOperatorBeforeLineBreak": true,
+    "requireCamelCaseOrUpperCaseIdentifiers": true,
+    "maximumLineLength": {
+      "value": 100,
+      "allowComments": true,
+      "allowRegex": true
+    },
+    "validateIndentation": 2,
+    "validateQuoteMarks": "\"",
+    "disallowMultipleLineStrings": true,
+    "disallowMultipleVarDecl": null,
+    "disallowSpaceBeforeBlockStatements": false
+}

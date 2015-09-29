@@ -1,0 +1,13 @@
+{
+  "name": "box2dweb",
+  "homepage": "https://github.com/hecht-software/box2dweb",
+  "_release": "03ff76dac7",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "03ff76dac7f9961668011b44c5ae716a30dd0b6f"
+  },
+  "_source": "git://github.com/hecht-software/box2dweb.git",
+  "_target": "*",
+  "_originalSource": "hecht-software/box2dweb"
+}
