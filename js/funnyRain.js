@@ -40,12 +40,28 @@ var FunnyRain = {};
       }
     }
 
+    function adaptForTouchEvent (e) {
+      if ("clientX" in e) {
+        return;
+      }
+
+      if (e.originalEvent.changedTouches) {
+        var touches = e.originalEvent.changedTouches;
+        for (var i = 0; i < touches.length; i++) {
+          e.clientX = Math.round(touches[i].pageX);
+          e.clientY = Math.round(touches[i].pageY);
+          break;
+        }
+      }
+    }
+    
     function onDblClick (e) {
       if (!_isActive) {
         startGame();
         return;
       }
 
+      adaptForTouchEvent(e);
       var block = findBlock(e.clientX, e.clientY);
 
       if (!block || (block && _isPaused)) {
