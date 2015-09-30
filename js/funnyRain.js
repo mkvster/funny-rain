@@ -803,6 +803,10 @@ var FunnyRain = {};
     BlocksPlugin.prototype.getBlocksFactory = function () {
       return _blocksFactory;
     };
+
+    BlocksPlugin.prototype.enable = function (isEnabled) {
+      _blocksFactory.enable(isEnabled);
+    };
   }
 
   FunnyRain.Plugins.Blocks.BlocksPlugin =
@@ -815,6 +819,7 @@ var FunnyRain = {};
 
   function BlocksFactory (game) {
     var _game = game;
+    var _isEnabled;
     var _blockClassList = [
       {
         blockCategory: "fruit",
@@ -885,6 +890,22 @@ var FunnyRain = {};
       }
     }
 
+    function enable (t, isEnabled) {
+      if (isEnabled === _isEnabled) {
+        return;
+      }
+      _isEnabled = isEnabled;
+      if (_isEnabled) {
+        removeAllBlocks(t);
+      }
+    }
+
+    function removeAllBlocks (t) {
+      while(_blockList.length) {
+        _blockList[0].destroy();
+      }
+    }
+
     BlocksFactory.prototype.createBlockByCategory = function (blockCategory) {
       return createBlockByCategory.call(this, blockCategory);
     };
@@ -895,6 +916,10 @@ var FunnyRain = {};
 
     BlocksFactory.prototype.destroyBlock = function (block) {
       destroyBlock.call(this, block);
+    };
+
+    BlocksFactory.prototype.enable = function (isEnabled) {
+      enable.call(this, this, isEnabled);
     };
   }
 
@@ -1049,6 +1074,10 @@ var FunnyRain = {};
       return _game;
     }
 
+    function destroy (t) {
+      _physics.destroyBody(t.body);
+    }
+
     BaseBlock.prototype.getGame = function () {
       return getGame.call(this);
     };
@@ -1063,6 +1092,10 @@ var FunnyRain = {};
 
     BaseBlock.prototype.adjust = function () {
       adjust.call(this, this);
+    };
+
+    BaseBlock.prototype.destroy = function () {
+      destroy.call(this, this);
     };
 
     BaseBlock.prototype.adjust = function () {
