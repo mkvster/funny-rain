@@ -7,7 +7,13 @@
 
     function createDialog () {
       var dlgSettings = {
-        font: "240px Courier Bold",
+        textStyle: {
+          font: "240px Courier Bold",
+          strokeThickness: 8,
+          stroke: "white",
+        },
+        livesFill: "red",
+        scoreFill: "green",
         scoreLeft: 900,
         livesLeft: 500,
         scoreTop: 50,
@@ -15,16 +21,24 @@
 
       var result = new PIXI.Container();
 
-      _livesText = new PIXI.Text("", {font: dlgSettings.font, fill: "red"});
+      var textStyleLives = $.extend( {},
+        dlgSettings.textStyle,
+        {fill: dlgSettings.livesFill} );
+
+      _livesText = new PIXI.Text("", textStyleLives);
       _livesText.position.x = dlgSettings.livesLeft;
       _livesText.position.y = dlgSettings.scoreTop;
 
-      _scoreText = new PIXI.Text("", {font: dlgSettings.font, fill: "green"});
+      var textStyleScore = $.extend( {},
+        dlgSettings.textStyle,
+        {fill: dlgSettings.scoreFill} );
+
+      _scoreText = new PIXI.Text("", textStyleScore);
       _scoreText.position.x = dlgSettings.scoreLeft;
       _scoreText.position.y = dlgSettings.scoreTop;
 
-      result.addChild(livesText);
-      result.addChild(scoreText);
+      result.addChild(_livesText);
+      result.addChild(_scoreText);
       return result;
     }
 
@@ -35,6 +49,18 @@
     function setLives (x) {
       _livesText.text = x;
     }
+
+    ScoreBoardDialog.prototype.setScore = function (x) {
+      setScore.call(this, x);
+    };
+
+    ScoreBoardDialog.prototype.setLives = function (x) {
+      setLives.call(this, x);
+    };
+
+    ScoreBoardDialog.prototype.createDialog = function () {
+      return createDialog.call(this);
+    };
 
   }
 

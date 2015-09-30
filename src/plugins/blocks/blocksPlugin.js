@@ -9,7 +9,7 @@
     init(this);
 
     function init (t) {
-      _blocksFactory = new FunnyRain.Plugins.Blocks.BlocksFactory();
+      _blocksFactory = new FunnyRain.Plugins.Blocks.BlocksFactory(t.getGame());
     }
 
 

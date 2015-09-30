@@ -1,9 +1,9 @@
 (function(FunnyRain){
   "use strict";
 
-  function FruitBlock (id, blockType, blockCategory) {
+  function FruitBlock (id, game, blockType, blockCategory, destroyHandler) {
     FunnyRain.Plugins.Blocks.BaseBlock.call(this,
-      id, blockType, blockCategory);
+      id, game, blockType, blockCategory, destroyHandler);
 
     init(this);
     function init (t) {

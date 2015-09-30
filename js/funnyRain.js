@@ -5,10 +5,11 @@ var FunnyRain = {};
   Boplex.defineConstProp(FunnyRain, "Version", "0.0.1");
   FunnyRain.Physics = {};
   FunnyRain.Graphics = {};
+  FunnyRain.Graphics.Widgets = {};
   FunnyRain.Plugins = {};
   FunnyRain.Plugins.Blocks = {};
   FunnyRain.Plugins.FallingThings = {};
-  FunnyRain.Graphics.Widgets = {};
+  FunnyRain.Plugins.ScoreBoard = {};
 
 })(FunnyRain);
 
@@ -606,6 +607,15 @@ var FunnyRain = {};
       _renderer.render(_scene);
     }
 
+    function createWidget (widget) {
+      _scene.addChild(widget);
+      return widget;      
+    }
+
+    function destroyWidget (widget) {
+      destroyActor(widget);
+    }
+
     View.prototype.step = function () {
       step.call(this);
     };
@@ -624,6 +634,14 @@ var FunnyRain = {};
 
     View.prototype.destroyActor = function (actor) {
       return destroyActor.call(this, actor);
+    };
+
+    View.prototype.createWidget = function (widget) {
+      return createWidget.call(this, widget);
+    };
+
+    View.prototype.destroyWidget = function (widget) {
+      return destroyWidget.call(this, widget);
     };
   }
 
@@ -647,6 +665,7 @@ var FunnyRain = {};
 
     function createPlugins () {
       var result = [
+        new FunnyRain.Plugins.ScoreBoard.ScoreBoardPlugin(_game),
         new FunnyRain.Plugins.Blocks.BlocksPlugin(_game),
         new FunnyRain.Plugins.FallingThings.FallingThingsPlugin(_game),
       ];
@@ -757,7 +776,7 @@ var FunnyRain = {};
     init(this);
 
     function init (t) {
-      _blocksFactory = new FunnyRain.Plugins.Blocks.BlocksFactory();
+      _blocksFactory = new FunnyRain.Plugins.Blocks.BlocksFactory(t.getGame());
     }
 
 
@@ -774,8 +793,8 @@ var FunnyRain = {};
 (function (FunnyRain) {
   "use strict";
 
-  function BlocksFactory (options) {
-
+  function BlocksFactory (game) {
+    var _game = game;
     var _blockClassList = [
       {
         blockCategory: "fruit",
@@ -789,10 +808,6 @@ var FunnyRain = {};
       }
     ];
 
-    var _defaults = {
-
-    };
-    var _settings = $.extend( {}, _defaults, options );
     var _nextId;
     var _blockList = [];
 
@@ -812,20 +827,25 @@ var FunnyRain = {};
       return null;
     }
 
+    function createBlock (blockCategoryRecord, blockTypeIndex) {
+      var blockId = ++_nextId;
+
+      var block = new blockCategoryRecord.blockClass(blockId,
+        _game,
+        blockCategoryRecord.blockTypes[blockTypeIndex],
+        blockCategoryRecord.blockCategory, function(context, block){
+          destroyBlock(block);
+        });
+
+      _blockList.push(block);
+      return block;
+    }
 
     function createRandomBlock (blockCategoryRecord) {
       var blockTypeIndex = Boplex.random(0,
         blockCategoryRecord.blockTypes.length-1);
 
-      var blockId = ++_nextId;
-
-      var block = new blockCategoryRecord.blockClass(blockId,
-        blockCategoryRecord.blockTypes[blockTypeIndex],
-        blockCategoryRecord.blockCategory);
-
-      _blockList.push(block);
-      return block;
-
+      return createBlock(blockCategoryRecord, blockTypeIndex);
     }
 
     function createBlockByCategory (blockCategory) {
@@ -865,9 +885,10 @@ var FunnyRain = {};
 (function(FunnyRain){
   "use strict";
 
-  function BaseBlock (id, blockType, blockCategory) {
+  function BaseBlock (id, game, blockType, blockCategory, destroyHandler) {
 
     var _id = id;
+    var _game = game;
     this.type = blockType;
     var _category = blockCategory;
 
@@ -878,14 +899,14 @@ var FunnyRain = {};
     var _physics;
     var _graphics;
     this.timeout;
-    var _onDestroy;
+    var _onDestroy = destroyHandler;
 
     //init();
     //function init(){
     //
     //}
 
-    function install (t, owner, physics, graphics, x, _onDestroy) {
+    function install (t, owner, physics, graphics, x) {
       _owner = owner;
       _physics = physics;
       _graphics = graphics;
@@ -893,12 +914,31 @@ var FunnyRain = {};
       t.body.block = t;
       t.actor = _graphics.createActor(t.type);
       t.adjust();
-      t.scheduleDestroy();
+      t.scheduleNextAction();
     }
 
     function adjust (t) {
       var scale = 0.2;
       t.actor.scale.x = t.actor.scale.y = scale;
+    }
+
+    function scheduleVisit (t, timeInterval, fn) {
+
+      t.timeout = setTimeout(function(){
+        if (_owner.getIsEnabled()) {
+          t.timeout = null;
+          fn(t);
+        }
+      }, timeInterval);
+
+    }
+
+    function scheduleRandomVisit (t, timeIntervalMin, timeIntervalMax, fn) {
+      var timeInterval = Boplex.random(
+        timeIntervalMin,
+        timeIntervalMax);
+
+      scheduleVisit(t, timeInterval, fn);
     }
 
     function scheduleDestroy (t) {
@@ -907,6 +947,19 @@ var FunnyRain = {};
         lifeTimeMax: 50000,
       };
 
+      scheduleRandomVisit(
+        t,
+        blockDestroySettings.lifeTimeMin,
+        blockDestroySettings.lifeTimeMax,
+        function() {
+          if (_physics.getIsPaused()) {
+            scheduleDestroy(t);
+            return;
+          }
+          _physics.destroyBody(t.body);
+        }
+      );
+      /*
       var lifeTime = Boplex.random(
         blockDestroySettings.lifeTimeMin,
         blockDestroySettings.lifeTimeMax);
@@ -921,7 +974,11 @@ var FunnyRain = {};
           _physics.destroyBody(t.body);
         }
       }, lifeTime);
+      */
+    }
 
+    function scheduleNextAction (t) {
+      scheduleDestroy(t);
     }
 
     function onDestroy (t) {
@@ -966,6 +1023,8 @@ var FunnyRain = {};
       blockGroup.forEach(function(body){
         _physics.destroyBody(body);
       });
+      var scoreBoardPlugin = _game.getPluginManager().findPlugin("ScoreBoard");
+      scoreBoardPlugin.getScoreManager().changeScore(5*blockGroup.length);
     }
 
     function collectGroup (block, e) {
@@ -982,6 +1041,14 @@ var FunnyRain = {};
       return block.type === otherBlock.type;
     }
 
+    function getGame () {
+      return _game;
+    }
+
+    BaseBlock.prototype.getGame = function () {
+      return getGame.call(this);
+    };
+
     BaseBlock.prototype.install = function (owner, physics, graphics, x) {
       install.call(this, this, owner, physics, graphics, x);
     };
@@ -996,6 +1063,10 @@ var FunnyRain = {};
 
     BaseBlock.prototype.scheduleDestroy = function () {
       scheduleDestroy.call(this, this);
+    };
+
+    BaseBlock.prototype.scheduleNextAction = function () {
+      scheduleNextAction.call(this, this);
     };
 
     BaseBlock.prototype.onDestroy = function () {
@@ -1023,9 +1094,9 @@ var FunnyRain = {};
 (function(FunnyRain){
   "use strict";
 
-  function FruitBlock (id, blockType, blockCategory) {
+  function FruitBlock (id, game, blockType, blockCategory, destroyHandler) {
     FunnyRain.Plugins.Blocks.BaseBlock.call(this,
-      id, blockType, blockCategory);
+      id, game, blockType, blockCategory, destroyHandler);
 
     init(this);
     function init (t) {
@@ -1042,9 +1113,9 @@ var FunnyRain = {};
 (function (FunnyRain){
   "use strict";
 
-  function BombBlock (id, blockType, blockCategory) {
+  function BombBlock (id, game, blockType, blockCategory, destroyHandler) {
     FunnyRain.Plugins.Blocks.BaseBlock.call(this,
-      id, blockType, blockCategory);
+      id, game, blockType, blockCategory, destroyHandler);
 
     function adjustBomb (t) {
       t.actor.scale.x = t.actor.scale.y = 0.2;
@@ -1131,11 +1202,8 @@ var FunnyRain = {};
       var x = Boplex.random(0, probabilitySettings.max);
       if (x < probabilitySettings.bomb) {
         return "bomb";
-      } else {
-        return "fruit";
       }
-
-      return result;
+      return "fruit";
     }
 
     function createActor (block, imageId) {
@@ -1147,9 +1215,7 @@ var FunnyRain = {};
     function createBlock (t, x) {
       var category = getRandCategory();
       var block = _blocksFactory.createBlockByCategory(category);
-      block.install(t, _physics, _view, x, function(context, block){
-        _blocksFactory.destroyBlock(block);
-      });
+      block.install(t, _physics, _view, x);
     }
 
     function loopCreateBlock (t) {
@@ -1225,7 +1291,13 @@ var FunnyRain = {};
 
     function createDialog () {
       var dlgSettings = {
-        font: "240px Courier Bold",
+        textStyle: {
+          font: "240px Courier Bold",
+          strokeThickness: 8,
+          stroke: "white",
+        },
+        livesFill: "red",
+        scoreFill: "green",
         scoreLeft: 900,
         livesLeft: 500,
         scoreTop: 50,
@@ -1233,16 +1305,24 @@ var FunnyRain = {};
 
       var result = new PIXI.Container();
 
-      _livesText = new PIXI.Text("", {font: dlgSettings.font, fill: "red"});
+      var textStyleLives = $.extend( {},
+        dlgSettings.textStyle,
+        {fill: dlgSettings.livesFill} );
+
+      _livesText = new PIXI.Text("", textStyleLives);
       _livesText.position.x = dlgSettings.livesLeft;
       _livesText.position.y = dlgSettings.scoreTop;
 
-      _scoreText = new PIXI.Text("", {font: dlgSettings.font, fill: "green"});
+      var textStyleScore = $.extend( {},
+        dlgSettings.textStyle,
+        {fill: dlgSettings.scoreFill} );
+
+      _scoreText = new PIXI.Text("", textStyleScore);
       _scoreText.position.x = dlgSettings.scoreLeft;
       _scoreText.position.y = dlgSettings.scoreTop;
 
-      result.addChild(livesText);
-      result.addChild(scoreText);
+      result.addChild(_livesText);
+      result.addChild(_scoreText);
       return result;
     }
 
@@ -1254,8 +1334,125 @@ var FunnyRain = {};
       _livesText.text = x;
     }
 
+    ScoreBoardDialog.prototype.setScore = function (x) {
+      setScore.call(this, x);
+    };
+
+    ScoreBoardDialog.prototype.setLives = function (x) {
+      setLives.call(this, x);
+    };
+
+    ScoreBoardDialog.prototype.createDialog = function () {
+      return createDialog.call(this);
+    };
+
   }
 
   FunnyRain.Graphics.Widgets.ScoreBoardDialog = ScoreBoardDialog;
+
+})(FunnyRain);
+
+(function (FunnyRain) {
+  "use strict";
+
+  function ScoreManager (game) {
+    var _game = game;
+    var _lives;
+    var _score;
+    var _dialog = null;
+    var _isEnabled = false;
+    var _view;
+
+    function load () {
+      _view = _game.getView();
+      _dialog = new FunnyRain.Graphics.Widgets.ScoreBoardDialog();
+      _view.createWidget(_dialog.createDialog());
+    }
+
+    function enable (isEnabled) {
+      if (isEnabled === _isEnabled) {
+        return;
+      }
+      _isEnabled = isEnabled;
+      if (_isEnabled) {
+        resetScoreBoard();
+      }
+    }
+
+    function setLives (x) {
+      _lives = x;
+      _dialog.setLives(x);
+    }
+
+    function setScore (x) {
+      _score = x;
+      _dialog.setScore(x);
+    }
+
+    function changeLives (dx) {
+      setLives(_lives + dx);
+    }
+
+    function changeScore (dx) {
+      setScore(_score + dx);
+    }
+
+    function resetScoreBoard () {
+      setScore(0);
+      setLives(3);
+    }
+
+    ScoreManager.prototype.load = function () {
+      load.call(this);
+    };
+
+    ScoreManager.prototype.enable = function (x) {
+      enable.call(this, x);
+    };
+
+    ScoreManager.prototype.changeScore = function (dx) {
+      changeScore.call(this, dx);
+    };
+
+    ScoreManager.prototype.changeLives = function (dx) {
+      changeLives.call(this, dx);
+    };
+
+  }
+
+  FunnyRain.Plugins.ScoreBoard.ScoreManager = ScoreManager;
+
+})(FunnyRain);
+
+(function (FunnyRain) {
+  "use strict";
+
+  function ScoreBoardPlugin (game) {
+    FunnyRain.Plugins.BasePlugin.call(this, "ScoreBoard", game);
+
+    var _ScoreManager = null;
+
+    init(this);
+
+    function init (t) {
+      _ScoreManager = new FunnyRain.Plugins.ScoreBoard.ScoreManager(t.getGame());
+    }
+
+    ScoreBoardPlugin.prototype.load = function () {
+      _ScoreManager.load();
+    };
+
+    ScoreBoardPlugin.prototype.getScoreManager = function () {
+      return _ScoreManager;
+    };
+
+    ScoreBoardPlugin.prototype.enable = function (isEnabled) {
+      return _ScoreManager.enable(isEnabled);
+    };
+  }
+
+
+  FunnyRain.Plugins.ScoreBoard.ScoreBoardPlugin =
+    Boplex.inherit(ScoreBoardPlugin, FunnyRain.Plugins.BasePlugin);
 
 })(FunnyRain);

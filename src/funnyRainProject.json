@@ -16,6 +16,8 @@
       "plugins/blocks/bombBlock.js",
       "plugins/fallingThings/fallingThingsPlugin.js",
       "plugins/fallingThings/fallManager.js",
-      "graphics/widgets/scoreBoardDialog.js"
+      "graphics/widgets/scoreBoardDialog.js",
+      "plugins/scoreBoard/scoreManager.js",
+      "plugins/scoreBoard/scoreBoardPlugin.js"
   ]
 }

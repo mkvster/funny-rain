@@ -1,8 +1,8 @@
 (function (FunnyRain) {
   "use strict";
 
-  function BlocksFactory (options) {
-
+  function BlocksFactory (game) {
+    var _game = game;
     var _blockClassList = [
       {
         blockCategory: "fruit",
@@ -16,10 +16,6 @@
       }
     ];
 
-    var _defaults = {
-
-    };
-    var _settings = $.extend( {}, _defaults, options );
     var _nextId;
     var _blockList = [];
 
@@ -39,20 +35,25 @@
       return null;
     }
 
+    function createBlock (blockCategoryRecord, blockTypeIndex) {
+      var blockId = ++_nextId;
+
+      var block = new blockCategoryRecord.blockClass(blockId,
+        _game,
+        blockCategoryRecord.blockTypes[blockTypeIndex],
+        blockCategoryRecord.blockCategory, function(context, block){
+          destroyBlock(block);
+        });
+
+      _blockList.push(block);
+      return block;
+    }
 
     function createRandomBlock (blockCategoryRecord) {
       var blockTypeIndex = Boplex.random(0,
         blockCategoryRecord.blockTypes.length-1);
 
-      var blockId = ++_nextId;
-
-      var block = new blockCategoryRecord.blockClass(blockId,
-        blockCategoryRecord.blockTypes[blockTypeIndex],
-        blockCategoryRecord.blockCategory);
-
-      _blockList.push(block);
-      return block;
-
+      return createBlock(blockCategoryRecord, blockTypeIndex);
     }
 
     function createBlockByCategory (blockCategory) {

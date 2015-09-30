@@ -1,9 +1,9 @@
 (function (FunnyRain){
   "use strict";
 
-  function BombBlock (id, blockType, blockCategory) {
+  function BombBlock (id, game, blockType, blockCategory, destroyHandler) {
     FunnyRain.Plugins.Blocks.BaseBlock.call(this,
-      id, blockType, blockCategory);
+      id, game, blockType, blockCategory, destroyHandler);
 
     function adjustBomb (t) {
       t.actor.scale.x = t.actor.scale.y = 0.2;
