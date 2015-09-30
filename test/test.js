@@ -1144,7 +1144,7 @@ var FunnyRain = {};
 
   function FruitBlock (id, blockType, blockCategory) {
     FunnyRain.Plugins.Blocks.BaseBlock.call(this,
-      id, blockType, blockCategory, _settings);
+      id, blockType, blockCategory);
 
     init(this);
     function init (t) {
