@@ -334,6 +334,29 @@ var FunnyRain = {};
       return result;
     }
 
+    function explodeBody (body, explosionPower) {
+      var count = 1;
+      var explosionSettings = {
+        size: _settings.bodySize,
+        power: explosionPower || 1.5,
+      };
+
+      var aabb = createAabb(body.GetWorldCenter(),
+        b2m(explosionSettings.power * explosionSettings.size));
+      _world.QueryAABB(function(fixture){
+        var currentBody = fixture.GetBody();
+        if(!(body === currentBody) &&
+          currentBody.GetType() === Box2D.Dynamics.b2Body.b2_dynamicBody) {
+          var curPosition = currentBody.GetPosition();
+          count += 1;
+          destroyBody(currentBody);
+        }
+        return true;
+      }, aabb);
+      destroyBody(body);
+      return count;
+    }
+
     BaseWorld.prototype.b2m = function (x) {
       return b2m.call(this, x);
     };
@@ -376,6 +399,10 @@ var FunnyRain = {};
 
     BaseWorld.prototype.getMatchGroup = function (body, compareGroup) {
       return getMatchGroup.call(this, body, compareGroup);
+    };
+
+    BaseWorld.prototype.explodeBody = function (body, explosionPower) {
+      return explodeBody.call(this, body, explosionPower);
     };
   }
 
@@ -799,7 +826,6 @@ var FunnyRain = {};
       _blocksFactory = new FunnyRain.Plugins.Blocks.BlocksFactory(t.getGame());
     }
 
-
     BlocksPlugin.prototype.getBlocksFactory = function () {
       return _blocksFactory;
     };
@@ -1188,7 +1214,7 @@ var FunnyRain = {};
             scheduleExplosion(t);
             return;
           }
-          physics.destroyBody(t.body);
+          physics.explodeBody(t.body);
           scoreBoardPlugin.getScoreManager().changeLives(-1);
         }
       );

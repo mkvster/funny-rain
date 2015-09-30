@@ -29,7 +29,7 @@
             scheduleExplosion(t);
             return;
           }
-          physics.destroyBody(t.body);
+          physics.explodeBody(t.body);
           scoreBoardPlugin.getScoreManager().changeLives(-1);
         }
       );

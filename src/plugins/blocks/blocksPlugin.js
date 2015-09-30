@@ -12,7 +12,6 @@
       _blocksFactory = new FunnyRain.Plugins.Blocks.BlocksFactory(t.getGame());
     }
 
-
     BlocksPlugin.prototype.getBlocksFactory = function () {
       return _blocksFactory;
     };
