@@ -47,6 +47,7 @@
       }
 
       adaptForTouchEvent(e);
+
       var block = findBlock(e.clientX, e.clientY);
 
       if (!block || (block && _isPaused)) {
@@ -117,7 +118,7 @@
 
     (function(){
       _pluginManager.load();
-      startGame();
+      //startGame();
     })();
   }
 

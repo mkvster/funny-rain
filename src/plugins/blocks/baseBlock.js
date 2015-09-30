@@ -125,6 +125,14 @@
       });
       var scoreBoardPlugin = _game.getPluginManager().findPlugin("ScoreBoard");
       scoreBoardPlugin.getScoreManager().changeScore(blockGroup.length);
+      if (blockGroup.length > 2) {
+        var rocketPlugin = _game.getPluginManager().findPlugin("Rocket");
+        if (rocketPlugin) {
+          var scale = _graphics.getScale() || 1;
+          var xLogical = e.clientX / scale;
+          rocketPlugin.launch(xLogical);
+        }
+      }
     }
 
     function collectGroup (block, e) {

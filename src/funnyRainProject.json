@@ -18,6 +18,7 @@
       "plugins/fallingThings/fallManager.js",
       "graphics/widgets/scoreBoardDialog.js",
       "plugins/scoreBoard/scoreManager.js",
-      "plugins/scoreBoard/scoreBoardPlugin.js"
+      "plugins/scoreBoard/scoreBoardPlugin.js",
+      "plugins/rocket/rocketPlugin.js"
   ]
 }
