@@ -8,5 +8,6 @@ var FunnyRain = {};
   FunnyRain.Plugins = {};
   FunnyRain.Plugins.Blocks = {};
   FunnyRain.Plugins.FallingThings = {};
+  FunnyRain.Graphics.Widgets = {};
 
 })(FunnyRain);
