@@ -1096,22 +1096,6 @@ var FunnyRain = {};
           _physics.destroyBody(t.body);
         }
       );
-      /*
-      var lifeTime = Boplex.random(
-        blockDestroySettings.lifeTimeMin,
-        blockDestroySettings.lifeTimeMax);
-
-      t.timeout = setTimeout(function(){
-        if (_owner.getIsEnabled()) {
-          t.timeout = null;
-          if (_physics.getIsPaused()) {
-            scheduleDestroy(t);
-            return;
-          }
-          _physics.destroyBody(t.body);
-        }
-      }, lifeTime);
-      */
     }
 
     function scheduleNextAction (t) {
@@ -1161,7 +1145,7 @@ var FunnyRain = {};
         _physics.destroyBody(body);
       });
       var scoreBoardPlugin = _game.getPluginManager().findPlugin("ScoreBoard");
-      scoreBoardPlugin.getScoreManager().changeScore(5*blockGroup.length);
+      scoreBoardPlugin.getScoreManager().changeScore(blockGroup.length);
     }
 
     function collectGroup (block, e) {
