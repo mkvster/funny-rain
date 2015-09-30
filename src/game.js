@@ -120,7 +120,7 @@
 
     (function(){
       _pluginManager.load();
-      //startGame();
+      startGame();
     })();
   }
 

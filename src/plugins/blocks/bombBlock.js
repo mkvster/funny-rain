@@ -5,6 +5,8 @@
     FunnyRain.Plugins.Blocks.BaseBlock.call(this,
       id, game, blockType, blockCategory, destroyHandler);
 
+    var _explosionClip = new FunnyRain.Graphics.Widgets.ExplosionClip();
+
     function adjustBomb (t) {
       t.actor.scale.x = t.actor.scale.y = 0.2;
       t.actor.sprite.rotation = -0.05;
@@ -29,10 +31,21 @@
             scheduleExplosion(t);
             return;
           }
+          var pos = t.actor.position;
+          showExplosion(t, pos);
           physics.explodeBody(t.body);
           scoreBoardPlugin.getScoreManager().changeLives(-1);
         }
       );
+    }
+
+    function showExplosion (t, pos) {
+      var explosion = _explosionClip.createExplosion(pos);
+      var view = t.getGraphics();
+      view.createWidget(explosion);
+      setTimeout(function(){
+        view.destroyWidget(explosion);
+      }, 500);
     }
 
     BombBlock.prototype.adjust = function () {

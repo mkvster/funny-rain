@@ -30,11 +30,13 @@
 
       _scene = createContainer(_settings.backgroundImage);
 
-      initDialog();
+      initResources();
     }
 
-    function initDialog () {
-
+    function initResources () {
+      PIXI.loader
+          .add("explosion", "assets/explosion.json")
+          .load();
     }
 
     function createSprite (imageId) {

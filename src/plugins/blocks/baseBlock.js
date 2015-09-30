@@ -165,6 +165,10 @@
       return _physics;
     };
 
+    BaseBlock.prototype.getGraphics = function () {
+      return _graphics;
+    };
+
     BaseBlock.prototype.install = function (owner, physics, graphics, x) {
       install.call(this, this, owner, physics, graphics, x);
     };
