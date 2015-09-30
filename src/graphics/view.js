@@ -90,7 +90,7 @@
 
     function createWidget (widget) {
       _scene.addChild(widget);
-      return widget;      
+      return widget;
     }
 
     function destroyWidget (widget) {
@@ -103,6 +103,10 @@
 
     View.prototype.setScale = function (scale, w, h) {
       setScale.call(this, scale, w, h);
+    };
+
+    View.prototype.getScale = function () {
+      return getScale.call(this);
     };
 
     View.prototype.getView = function () {

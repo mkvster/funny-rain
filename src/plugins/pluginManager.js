@@ -14,6 +14,7 @@
 
     function createPlugins () {
       var result = [
+        new FunnyRain.Plugins.Rocket.RocketPlugin(_game),
         new FunnyRain.Plugins.ScoreBoard.ScoreBoardPlugin(_game),
         new FunnyRain.Plugins.Blocks.BlocksPlugin(_game),
         new FunnyRain.Plugins.FallingThings.FallingThingsPlugin(_game),

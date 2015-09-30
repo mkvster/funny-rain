@@ -10,5 +10,6 @@ var FunnyRain = {};
   FunnyRain.Plugins.Blocks = {};
   FunnyRain.Plugins.FallingThings = {};
   FunnyRain.Plugins.ScoreBoard = {};
+  FunnyRain.Plugins.Rocket = {};
 
 })(FunnyRain);
