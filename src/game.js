@@ -47,8 +47,10 @@
       }
 
       adaptForTouchEvent(e);
-
-      var block = findBlock(e.clientX, e.clientY);
+      var scale = _view.getScale() || 1;
+      var x = e.clientX / scale;
+      var y = e.clientY / scale;
+      var block = findBlock(x, y);
 
       if (!block || (block && _isPaused)) {
         togglePause();
