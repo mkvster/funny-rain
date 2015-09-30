@@ -31,7 +31,20 @@
         return;
       }
 
-      var block = findBlock(e.clientX, e.clientY);
+      var x = e.clientX;
+      var y = e.clientY;
+
+      // if it's a touch event use first touch
+      if (typeof x === "undefined" && e.originalEvent.changedTouches) {
+        var touches = e.originalEvent.changedTouches;
+        for (var i = 0; i < touches.length; i++) {
+          x = touches[i].pageX;
+          y = touches[i].pageY;
+          break;
+        }
+      }
+
+      var block = findBlock(x, y);
 
       if (!block || (block && _isPaused)) {
         togglePause();
