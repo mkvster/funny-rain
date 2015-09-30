@@ -75,22 +75,6 @@
           _physics.destroyBody(t.body);
         }
       );
-      /*
-      var lifeTime = Boplex.random(
-        blockDestroySettings.lifeTimeMin,
-        blockDestroySettings.lifeTimeMax);
-
-      t.timeout = setTimeout(function(){
-        if (_owner.getIsEnabled()) {
-          t.timeout = null;
-          if (_physics.getIsPaused()) {
-            scheduleDestroy(t);
-            return;
-          }
-          _physics.destroyBody(t.body);
-        }
-      }, lifeTime);
-      */
     }
 
     function scheduleNextAction (t) {
@@ -140,7 +124,7 @@
         _physics.destroyBody(body);
       });
       var scoreBoardPlugin = _game.getPluginManager().findPlugin("ScoreBoard");
-      scoreBoardPlugin.getScoreManager().changeScore(5*blockGroup.length);
+      scoreBoardPlugin.getScoreManager().changeScore(blockGroup.length);
     }
 
     function collectGroup (block, e) {
@@ -163,6 +147,10 @@
 
     BaseBlock.prototype.getGame = function () {
       return getGame.call(this);
+    };
+
+    BaseBlock.prototype.getPhysics = function () {
+      return _physics;
     };
 
     BaseBlock.prototype.install = function (owner, physics, graphics, x) {
@@ -199,6 +187,12 @@
 
     BaseBlock.prototype.compareGroup = function (otherBlock) {
       return compareGroup.call(this, this, otherBlock);
+    };
+
+    BaseBlock.prototype.scheduleRandomVisit =
+    function (timeIntervalMin, timeIntervalMax, fn) {
+      return scheduleRandomVisit.call(this, this, timeIntervalMin,
+          timeIntervalMax, fn);
     };
 
   }

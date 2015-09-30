@@ -175,7 +175,7 @@ var FunnyRain = {};
         }
       }
     }
-    
+
     function onDblClick (e) {
       if (!_isActive) {
         startGame();
@@ -245,6 +245,10 @@ var FunnyRain = {};
 
     Game.prototype.getRainWorld = function () {
       return _rainWorld;
+    };
+
+    Game.prototype.finish = function () {
+      return stopGame.call(this);
     };
 
     (function(){
@@ -1096,22 +1100,6 @@ var FunnyRain = {};
           _physics.destroyBody(t.body);
         }
       );
-      /*
-      var lifeTime = Boplex.random(
-        blockDestroySettings.lifeTimeMin,
-        blockDestroySettings.lifeTimeMax);
-
-      t.timeout = setTimeout(function(){
-        if (_owner.getIsEnabled()) {
-          t.timeout = null;
-          if (_physics.getIsPaused()) {
-            scheduleDestroy(t);
-            return;
-          }
-          _physics.destroyBody(t.body);
-        }
-      }, lifeTime);
-      */
     }
 
     function scheduleNextAction (t) {
@@ -1161,7 +1149,7 @@ var FunnyRain = {};
         _physics.destroyBody(body);
       });
       var scoreBoardPlugin = _game.getPluginManager().findPlugin("ScoreBoard");
-      scoreBoardPlugin.getScoreManager().changeScore(5*blockGroup.length);
+      scoreBoardPlugin.getScoreManager().changeScore(blockGroup.length);
     }
 
     function collectGroup (block, e) {
@@ -1184,6 +1172,10 @@ var FunnyRain = {};
 
     BaseBlock.prototype.getGame = function () {
       return getGame.call(this);
+    };
+
+    BaseBlock.prototype.getPhysics = function () {
+      return _physics;
     };
 
     BaseBlock.prototype.install = function (owner, physics, graphics, x) {
@@ -1220,6 +1212,12 @@ var FunnyRain = {};
 
     BaseBlock.prototype.compareGroup = function (otherBlock) {
       return compareGroup.call(this, this, otherBlock);
+    };
+
+    BaseBlock.prototype.scheduleRandomVisit =
+    function (timeIntervalMin, timeIntervalMax, fn) {
+      return scheduleRandomVisit.call(this, this, timeIntervalMin,
+          timeIntervalMax, fn);
     };
 
   }
@@ -1262,8 +1260,34 @@ var FunnyRain = {};
       TweenMax.to(t.actor.scale, 0.15, {y: 0.18, yoyo: true, repeat: -1});
     }
 
+    function scheduleExplosion (t) {
+      var bombExplosionSettings = {
+        lifeTimeMin: 4000,
+        lifeTimeMax: 15000,
+      };
+
+      var scoreBoardPlugin = t.getGame().getPluginManager().findPlugin("ScoreBoard");
+      var physics = t.getPhysics();
+      t.scheduleRandomVisit(
+        bombExplosionSettings.lifeTimeMin,
+        bombExplosionSettings.lifeTimeMax,
+        function() {
+          if (physics.getIsPaused()) {
+            scheduleExplosion(t);
+            return;
+          }
+          physics.destroyBody(t.body);
+          scoreBoardPlugin.getScoreManager().changeLives(-1);
+        }
+      );
+    }
+
     BombBlock.prototype.adjust = function () {
       adjustBomb.call(this, this);
+    };
+
+    BombBlock.prototype.scheduleNextAction = function () {
+      scheduleExplosion.call(this, this);
     };
 
   }
@@ -1517,8 +1541,14 @@ var FunnyRain = {};
     }
 
     function setLives (x) {
+      if (x < 0) {
+        x = 0;
+      }
       _lives = x;
       _dialog.setLives(x);
+      if (_lives === 0) {
+        _game.finish();
+      }
     }
 
     function setScore (x) {

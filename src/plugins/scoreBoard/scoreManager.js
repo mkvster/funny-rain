@@ -26,8 +26,14 @@
     }
 
     function setLives (x) {
+      if (x < 0) {
+        x = 0;
+      }
       _lives = x;
       _dialog.setLives(x);
+      if (_lives === 0) {
+        _game.finish();
+      }
     }
 
     function setScore (x) {
