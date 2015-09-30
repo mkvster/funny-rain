@@ -8,17 +8,21 @@
     var _rainWorld = null;
     var _isActive = false;
     var _isPaused = false;
+    var _pluginManager = null;
 
-    init();
+    init(this);
 
-    function init () {
+    function init (t) {
       _rainWorld = new FunnyRain.Physics.RainWorld({onDestroyBody: onDestroyBody});
       _view = new FunnyRain.Graphics.View();
-      $(_element).append(_view.getView());
-      _animFrame = new FunnyRain.Graphics.AnimFrame(
-        onScale,
-        onStep);
-      $(document).on("dblclick touchstart", onDblClick);
+      _pluginManager = new FunnyRain.Plugins.PluginManager(t);
+      if ($(_element).length > 0) {
+        $(_element).append(_view.getView());
+        _animFrame = new FunnyRain.Graphics.AnimFrame(
+          onScale,
+          onStep);
+        $(document).on("dblclick touchstart", onDblClick);
+      }
     }
 
     function onDblClick (e) {
@@ -41,18 +45,20 @@
       //TODO Loopby all possible physics to find body
       var physics = _rainWorld;
       var body = physics.findBody(x, y);
-      return body.block;
+      return body ? body.block : null;
     }
 
     function stopGame () {
       _isActive = false;
       _isPaused = false;
+      _pluginManager.enable(false);
     }
 
     function startGame () {
       _isActive = true;
       _isPaused = false;
       _rainWorld.setIsPaused(false);
+      _pluginManager.enable(true);
     }
 
     function togglePause () {
@@ -66,11 +72,33 @@
 
     function onStep () {
       _rainWorld.step();
+      _pluginManager.step();
       _view.step();
     }
 
     function onDestroyBody (context, body) {
+      var block = body.block;
+      if (block && block.onDestroy) {
+        block.onDestroy();
+      }
     }
+
+    Game.prototype.getPluginManager = function () {
+      return _pluginManager;
+    };
+
+    Game.prototype.getView = function () {
+      return _view;
+    };
+
+    Game.prototype.getRainWorld = function () {
+      return _rainWorld;
+    };
+
+    (function(){
+      _pluginManager.load();
+      startGame();
+    })();
   }
 
   FunnyRain.Game = Game;

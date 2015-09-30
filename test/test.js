@@ -1,3 +1,7 @@
+var $ = {};
+var PIXI = {};
+var Box2D = {};
+
 "use strict";
 var Boplex = {};
 
@@ -121,6 +125,9 @@ var FunnyRain = {};
   Boplex.defineConstProp(FunnyRain, "Version", "0.0.1");
   FunnyRain.Physics = {};
   FunnyRain.Graphics = {};
+  FunnyRain.Plugins = {};
+  FunnyRain.Plugins.Blocks = {};
+  FunnyRain.Plugins.FallingThings = {};
 
 })(FunnyRain);
 
@@ -134,17 +141,21 @@ var FunnyRain = {};
     var _rainWorld = null;
     var _isActive = false;
     var _isPaused = false;
+    var _pluginManager = null;
 
-    init();
+    init(this);
 
-    function init () {
+    function init (t) {
       _rainWorld = new FunnyRain.Physics.RainWorld({onDestroyBody: onDestroyBody});
       _view = new FunnyRain.Graphics.View();
-      $(_element).append(_view.getView());
-      _animFrame = new FunnyRain.Graphics.AnimFrame(
-        onScale,
-        onStep);
-      $(document).on("dblclick touchstart", onDblClick);
+      _pluginManager = new FunnyRain.Plugins.PluginManager(t);
+      if ($(_element).length > 0) {
+        $(_element).append(_view.getView());
+        _animFrame = new FunnyRain.Graphics.AnimFrame(
+          onScale,
+          onStep);
+        $(document).on("dblclick touchstart", onDblClick);
+      }
     }
 
     function onDblClick (e) {
@@ -167,18 +178,20 @@ var FunnyRain = {};
       //TODO Loopby all possible physics to find body
       var physics = _rainWorld;
       var body = physics.findBody(x, y);
-      return body.block;
+      return body ? body.block : null;
     }
 
     function stopGame () {
       _isActive = false;
       _isPaused = false;
+      _pluginManager.enable(false);
     }
 
     function startGame () {
       _isActive = true;
       _isPaused = false;
       _rainWorld.setIsPaused(false);
+      _pluginManager.enable(true);
     }
 
     function togglePause () {
@@ -192,11 +205,33 @@ var FunnyRain = {};
 
     function onStep () {
       _rainWorld.step();
+      _pluginManager.step();
       _view.step();
     }
 
     function onDestroyBody (context, body) {
+      var block = body.block;
+      if (block && block.onDestroy) {
+        block.onDestroy();
+      }
     }
+
+    Game.prototype.getPluginManager = function () {
+      return _pluginManager;
+    };
+
+    Game.prototype.getView = function () {
+      return _view;
+    };
+
+    Game.prototype.getRainWorld = function () {
+      return _rainWorld;
+    };
+
+    (function(){
+      _pluginManager.load();
+      startGame();
+    })();
   }
 
   FunnyRain.Game = Game;
@@ -715,8 +750,673 @@ var FunnyRain = {};
 
 })(FunnyRain);
 
+(function (FunnyRain) {
+  "use strict";
+
+  function PluginManager (game) {
+    var _game = game;
+    var _pluginList = [];
+
+    init();
+
+    function init () {
+      var createdPlugins = createPlugins();
+      _pluginList = _pluginList.concat(createdPlugins);
+    }
+
+    function createPlugins () {
+      var result = [
+        new FunnyRain.Plugins.Blocks.BlocksPlugin(_game),
+        new FunnyRain.Plugins.FallingThings.FallingThingsPlugin(_game),
+      ];
+      return result;
+    }
+
+    function forEachPlugin (isForward, fn) {
+      var len = _pluginList.length;
+      var index = isForward ? 0 : len - 1;
+      var result = null;
+      while (!result && (index > -1 && index < len)) {
+        result = fn(_pluginList[index]);
+        index = isForward ? index + 1 : index - 1;
+      }
+      return result;
+    }
+
+    function load () {
+      forEachPlugin(true, function (plugin) {
+        if (plugin.load) {
+          plugin.load();
+        }
+      });
+    }
+
+    function step () {
+      forEachPlugin(true, function (plugin) {
+        if (plugin.step) {
+          plugin.step();
+        }
+      });
+    }
+
+    function enable (isEnabled) {
+      forEachPlugin(isEnabled, function (plugin) {
+        if (plugin.enable) {
+          plugin.enable(isEnabled);
+        }
+      });
+    }
+
+    function findPlugin (id) {
+      var found = forEachPlugin(false, function (plugin) {
+        if (id === plugin.getPluginId()) {
+          return plugin;
+        }
+      });
+      return found;
+    }
+
+    PluginManager.prototype.load = function () {
+      load.call(this);
+    };
+
+    PluginManager.prototype.step = function () {
+      step.call(this);
+    };
+
+    PluginManager.prototype.enable = function (isEnabled) {
+      enable.call(this, isEnabled);
+    };
+
+    PluginManager.prototype.findPlugin = function (id) {
+      return findPlugin.call(this, id);
+    };
+  }
+
+  FunnyRain.Plugins.PluginManager = PluginManager;
+
+})(FunnyRain);
+
+(function (FunnyRain) {
+  "use strict";
+
+  function BasePlugin (id, game) {
+    this._id = id;
+    var _game = game;
+
+    function getId (t) {
+      return t._id;
+    }
+
+    function getGame () {
+      return _game;
+    }
+
+    BasePlugin.prototype.getPluginId = function () {
+      return getId.call(this, this);
+    };
+
+    BasePlugin.prototype.getGame = function () {
+      return getGame.call(this);
+    };
+  }
+
+  FunnyRain.Plugins.BasePlugin = BasePlugin;
+
+})(FunnyRain);
+
+(function (FunnyRain) {
+  "use strict";
+
+  function BlocksPlugin (game) {
+    FunnyRain.Plugins.BasePlugin.call(this, "Blocks", game);
+
+    var _blocksFactory = null;
+
+    init(this);
+
+    function init (t) {
+      _blocksFactory = new FunnyRain.Plugins.Blocks.BlocksFactory();
+    }
+
+
+    BlocksPlugin.prototype.getBlocksFactory = function () {
+      return _blocksFactory;
+    };
+  }
+
+  FunnyRain.Plugins.Blocks.BlocksPlugin =
+    Boplex.inherit(BlocksPlugin, FunnyRain.Plugins.BasePlugin);
+
+})(FunnyRain);
+
+(function(FunnyRain){
+  "use strict";
+
+  function BlocksFactory (options) {
+
+    var _blockClassList = [
+      {
+        blockCategory: "fruit",
+        blockClass: FunnyRain.Plugins.Blocks.FruitBlock,
+        blockTypes: ["apple","peach","orange"]
+      },
+      {
+        blockCategory: "bomb",
+        blockClass: FunnyRain.Plugins.Blocks.BombBlock,
+        blockTypes: ["bomb"]
+      }
+    ];
+
+    var _defaults = {
+
+    };
+    var _settings = $.extend( {}, _defaults, options );
+    var _nextId;
+    var _blockList = [];
+
+    init();
+    function init () {
+      _nextId = 0;
+    }
+
+
+    function findBlockCategory (blockCategory) {
+      for(var i = 0; i < _blockClassList.length; i++) {
+        var blockClassRecord = _blockClassList[i];
+        if(blockClassRecord.blockCategory === blockCategory) {
+          return blockClassRecord;
+        }
+      }
+      return null;
+    }
+
+
+    function createRandomBlock (blockCategoryRecord) {
+      var blockTypeIndex = Boplex.random(0,
+        blockCategoryRecord.blockTypes.length-1);
+
+      var blockId = ++_nextId;
+
+      var block = new blockCategoryRecord.blockClass(blockId,
+        blockCategoryRecord.blockTypes[blockTypeIndex],
+        blockCategoryRecord.blockCategory);
+
+      _blockList.push(block);
+      return block;
+
+    }
+
+    function createBlockByCategory (blockCategory) {
+      var blockCategoryRecord = findBlockCategory(blockCategory);
+      if (!blockCategoryRecord) {
+        throw new RangeError(blockCategory + " - unknown block category");
+      }
+      return createRandomBlock(blockCategoryRecord);
+    }
+
+    function destroyBlock (block) {
+      for(var i = 0; i < _blockList.length; i++){
+        if (block === _blockList[i]) {
+          _blockList.splice(i,1);
+          break;
+        }
+      }
+    }
+
+    BlocksFactory.prototype.createBlockByCategory = function (blockCategory) {
+      return createBlockByCategory.call(this, blockCategory);
+    };
+
+    BlocksFactory.prototype.forEach = function (handler) {
+      _blockList.forEach(handler);
+    };
+
+    BlocksFactory.prototype.destroyBlock = function (block) {
+      destroyBlock.call(this, block);
+    };
+  }
+
+  FunnyRain.Plugins.Blocks.BlocksFactory = BlocksFactory;
+
+})(FunnyRain);
+
+(function(FunnyRain){
+  "use strict";
+
+  function BaseBlock (id, blockType, blockCategory, options) {
+    var _defaults = {
+
+    };
+    var _settings = $.extend( {}, _defaults, options );
+
+    var _id = id;
+    this.type = blockType;
+    var _category = blockCategory;
+
+    this.body = null;
+    this.actor = null;
+
+    var _owner;
+    var _physics;
+    var _graphics;
+    this.timeout;
+    var _onDestroy;
+
+    //init();
+    //function init(){
+    //
+    //}
+
+    function install (t, owner, physics, graphics, x, _onDestroy) {
+      _owner = owner;
+      _physics = physics;
+      _graphics = graphics;
+      t.body = _physics.createBody(x);
+      t.body.block = t;
+      t.actor = _graphics.createActor(t.type);
+      t.adjust();
+      t.scheduleDestroy();
+    }
+
+    function adjust (t) {
+      var scale = 0.2;
+      t.actor.scale.x = t.actor.scale.y = scale;
+    }
+
+    function scheduleDestroy (t) {
+      var blockDestroySettings = {
+        lifeTimeMin: 10000,
+        lifeTimeMax: 50000,
+      };
+
+      var lifeTime = Boplex.random(
+        blockDestroySettings.lifeTimeMin,
+        blockDestroySettings.lifeTimeMax);
+
+      t.timeout = setTimeout(function(){
+        if (_owner.getIsEnabled()) {
+          t.timeout = null;
+          if (_physics.getIsPaused()) {
+            scheduleDestroy(t);
+            return;
+          }
+          _physics.destroyBody(t.body);
+        }
+      }, lifeTime);
+
+    }
+
+    function onDestroy (t) {
+      removeBlock(t);
+      removeActor(t);
+      (new Boplex.Event(t, _onDestroy).raise(t));
+    }
+
+    function removeBlock (t) {
+      var timeout = t.timeout;
+      if (timeout) {
+        clearTimeout(timeout);
+      }
+      //var isBomb = block.type === 'bomb';
+      //if (block.isResolved) {
+      //  var prize = isBomb ? 5 : 1;
+      //  incScore(prize);
+      //}
+      //else if (isBomb) {
+      //  decLives(1);
+      //}
+      /*
+      var parent = block.actor.parent;
+      if (parent) {
+        parent.removeChild(block.actor);
+      }
+      */
+      //removeActor(t);
+      /*
+      var blockList = status.getBlockList();
+      for(var i = 0; i < blockList.length; i++){
+        if (block === blockList[i]) {
+          blockList.splice(i,1);
+          break;
+        }
+      }
+      */
+    }
+
+    function removeActor (t) {
+      if (!t.actor) {
+        return;
+      }
+      _graphics.destroyActor(t.actor);
+      t.actor = null;
+    }
+
+    function step (t) {
+      if (!(t.body && t.actor)) {
+        return;
+      }
+      var scale = _physics.getScale();
+      var pos = t.body.GetPosition();
+      t.actor.position.x = pos.x * scale;
+      t.actor.position.y = pos.y * scale;
+      //var angle = t.body.GetAngle();
+
+    }
+
+    function onDblClick (t, e) {
+      resolveBlock(t, e);
+    }
+
+    function resolveBlock (block, e) {
+      var wasResolved = block.isResolved;
+      block.isResolved = true;
+      /*
+      if (block.type === "bomb" && !wasResolved) {
+        stopBomb(block);
+        return;
+      }
+      */
+      var blockGroup = collectGroup(block, e);
+      blockGroup.forEach(function(body){
+        //body.group = null;
+        //body.resolveBlock = true;
+        _physics.destroyBody(body);
+      });
+      //if (blockGroup.length > 2) {
+      //  lunchRocket(e.clientX - 60);
+      //}
+    }
+
+    function collectGroup (block, e) {
+      return _physics.getMatchGroup(
+        block.body,
+        function(other){
+          if(other.block) {
+            return block.compareGroup(other.block);
+          }
+        });
+    }
+
+    function compareGroup (block, otherBlock) {
+      return block.type === otherBlock.type;
+    }
+
+    BaseBlock.prototype.install = function (owner, physics, graphics, x) {
+      install.call(this, this, owner, physics, graphics, x);
+    };
+
+    BaseBlock.prototype.adjust = function () {
+      adjust.call(this, this);
+    };
+
+    BaseBlock.prototype.adjust = function () {
+      adjust.call(this, this);
+    };
+
+    BaseBlock.prototype.scheduleDestroy = function () {
+      scheduleDestroy.call(this, this);
+    };
+
+    BaseBlock.prototype.onDestroy = function () {
+      onDestroy.call(this, this);
+    };
+
+    BaseBlock.prototype.step = function () {
+      step.call(this, this);
+    };
+
+    BaseBlock.prototype.onDblClick = function (e) {
+      onDblClick.call(this, this, e);
+    };
+
+    BaseBlock.prototype.compareGroup = function (otherBlock) {
+      return compareGroup.call(this, this, otherBlock);
+    };
+
+  }
+  FunnyRain.Plugins.Blocks.BaseBlock = BaseBlock;
+
+})(FunnyRain);
+
+(function(target){
+  "use strict";
+
+  function FruitBlock (id, blockType, blockCategory, options) {
+    var _defaults = {
+
+    };
+    var _settings = $.extend( {}, _defaults, options );
+
+    FunnyRain.Plugins.Blocks.BaseBlock.call(this,
+      id, blockType, blockCategory, _settings);
+
+    init(this);
+    function init (t) {
+      t.scale = 0.2;
+    }
+
+  }
+
+  FunnyRain.Plugins.Blocks.FruitBlock =
+    Boplex.inherit(FruitBlock, FunnyRain.Plugins.Blocks.BaseBlock);
+
+})(FunnyRain.Plugins.Blocks);
+
+(function (FunnyRain){
+  "use strict";
+
+  function BombBlock (id, blockType, blockCategory, options) {
+    var _defaults = {
+
+    };
+    var _settings = $.extend( {}, _defaults, options );
+
+    FunnyRain.Plugins.Blocks.BaseBlock.call(this,
+      id, blockType, blockCategory, _settings);
+
+    function adjustBomb (t) {
+      t.actor.scale.x = t.actor.scale.y = 0.2;
+      t.actor.sprite.rotation = -0.05;
+      TweenMax.to(t.actor.sprite, 0.1, {rotation: 0.05, yoyo: true, repeat: -1});
+      TweenMax.to(t.actor.scale, 0.15, {x: 0.18, yoyo: true, repeat: -1});
+      TweenMax.to(t.actor.scale, 0.15, {y: 0.18, yoyo: true, repeat: -1});
+    }
+
+    BombBlock.prototype.adjust = function () {
+      adjustBomb.call(this, this);
+    };
+
+  }
+
+  FunnyRain.Plugins.Blocks.BombBlock =
+    Boplex.inherit(BombBlock, FunnyRain.Plugins.Blocks.BaseBlock);
+
+})(FunnyRain);
+
+(function (FunnyRain) {
+  "use strict";
+
+  function FallingThingsPlugin (game) {
+    FunnyRain.Plugins.BasePlugin.call(this, "FallingThings", game);
+
+    var _FallManager = null;
+
+    init(this);
+
+    function init (t) {
+      _FallManager = new FunnyRain.Plugins.FallingThings.FallManager(t.getGame());
+    }
+
+    FallingThingsPlugin.prototype.load = function () {
+      _FallManager.load();
+    };
+
+    FallingThingsPlugin.prototype.getFallManager = function () {
+      return _FallManager;
+    };
+
+    FallingThingsPlugin.prototype.enable = function (isEnabled) {
+      _FallManager.enable(isEnabled);
+    };
+
+    FallingThingsPlugin.prototype.step = function () {
+      _FallManager.step();
+    };
+  }
+
+  FunnyRain.Plugins.FallingThings.FallingThingsPlugin =
+    Boplex.inherit(FallingThingsPlugin, FunnyRain.Plugins.BasePlugin);
+
+})(FunnyRain);
+
+(function (FunnyRain) {
+  "use strict";
+
+  function FallManager (game) {
+    /*
+    var _defaults = {
+      fruitTypes: ["bomb","apple","peach","orange"],
+    };
+    var _settings = $.extend( {}, _defaults, options );
+    */
+    var _game = game;
+
+    var _isEnabled;
+    var _blocksFactory;
+    var _physics;
+    var _view;
+
+    init();
+    function init () {
+    }
+
+    function load () {
+      _physics = _game.getRainWorld();
+      _view = _game.getView();
+      var blocksPlugin = _game.getPluginManager().findPlugin("Blocks");
+      _blocksFactory = blocksPlugin.getBlocksFactory();
+    }
+
+    function getRandCategory () {
+      var probabilitySettings = {
+        bomb: 25,
+        max: 100
+      };
+      var x = Boplex.random(0, probabilitySettings.max);
+      if (x < probabilitySettings.bomb) {
+        return "bomb";
+      } else {
+        return "fruit";
+      }
+
+      return result;
+    }
+
+    function createActor (block, imageId) {
+      //removeActor(block);
+      imageId = imageId || block.type;
+      block.actor = _view.createActor(imageId);
+    }
+
+    function createBlock (t, x) {
+      var category = getRandCategory();
+      var block = _blocksFactory.createBlockByCategory(category);
+      block.install(t, _physics, _view, x, function(context, block){
+        _blocksFactory.destroyBlock(block);
+      });
+      /*
+      block.onDestroy = function(){
+        removeBlock(block);
+      }
+      */
+      //block.body = _physics.createBody(x);
+      //block.body.block = block;
+      //block.actor = view.createActor(block.type);
+      //createActor(block);
+      //scheduleDestroyBlock(block);
+    }
+
+    function loopCreateBlock (t) {
+      var blockCreateSettings = {
+        fallWidth: 60*20,
+        leftPadding: 50,
+        nextTimeMin: 500,
+        nextTimeMax: 1000,
+      };
+
+      var nextX = blockCreateSettings.leftPadding +
+        Boplex.random(0, blockCreateSettings.fallWidth);
+
+      var nextTime = Boplex.random(
+        blockCreateSettings.nextTimeMin,
+        blockCreateSettings.nextTimeMax);
+
+      if (_isEnabled) {
+        if (!_physics.getIsPaused()) {
+          createBlock(t, nextX);
+        }
+        setTimeout(function(){
+          loopCreateBlock(t);
+        }, nextTime);
+      }
+    }
+
+    function enable (t,isEnabled) {
+      if (isEnabled === _isEnabled) {
+        return;
+      }
+      _isEnabled = isEnabled;
+      if (_isEnabled) {
+        loopCreateBlock(t);
+      }
+    }
+
+    function step () {
+      if (!_blocksFactory) {
+        return;
+      }
+      //var scale = _physics.getScale();
+      _blocksFactory.forEach(function(block){
+        block.step();
+        /*
+        var pos = block.body.GetPosition();
+        block.actor.position.x = pos.x * scale;
+        block.actor.position.y = pos.y * scale;
+        var angle = block.body.GetAngle();
+        */
+        //block.actor.rotation = angle;
+        //if (!block.x) {
+        //  logger.log("pos.x: "+ pos.x);
+        //  logger.log("pos.y: "+ pos.y);
+        //  block.x = true;
+        //}
+      });
+    }
+
+    FallManager.prototype.load = function (first_argument) {
+      load.call(this);
+    };
+
+    FallManager.prototype.enable = function (isEnabled) {
+      enable.call(this, this, isEnabled);
+    };
+
+    FallManager.prototype.getIsEnabled = function () {
+      return _isEnabled;
+    };
+
+    FallManager.prototype.step = function () {
+      step.call(this);
+    };
+  }
+  FunnyRain.Plugins.FallingThings.FallManager = FallManager;
+
+})(FunnyRain);
+
 console.log("Testing FunnyRain... ");
 
 console.dir(FunnyRain);
+var game = new FunnyRain.Game();
 
 console.log("Test completed!");
