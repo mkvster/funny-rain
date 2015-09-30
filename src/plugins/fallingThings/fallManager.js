@@ -2,12 +2,6 @@
   "use strict";
 
   function FallManager (game) {
-    /*
-    var _defaults = {
-      fruitTypes: ["bomb","apple","peach","orange"],
-    };
-    var _settings = $.extend( {}, _defaults, options );
-    */
     var _game = game;
 
     var _isEnabled;
@@ -53,16 +47,6 @@
       block.install(t, _physics, _view, x, function(context, block){
         _blocksFactory.destroyBlock(block);
       });
-      /*
-      block.onDestroy = function(){
-        removeBlock(block);
-      }
-      */
-      //block.body = _physics.createBody(x);
-      //block.body.block = block;
-      //block.actor = view.createActor(block.type);
-      //createActor(block);
-      //scheduleDestroyBlock(block);
     }
 
     function loopCreateBlock (t) {
@@ -104,21 +88,8 @@
       if (!_blocksFactory) {
         return;
       }
-      //var scale = _physics.getScale();
       _blocksFactory.forEach(function(block){
         block.step();
-        /*
-        var pos = block.body.GetPosition();
-        block.actor.position.x = pos.x * scale;
-        block.actor.position.y = pos.y * scale;
-        var angle = block.body.GetAngle();
-        */
-        //block.actor.rotation = angle;
-        //if (!block.x) {
-        //  logger.log("pos.x: "+ pos.x);
-        //  logger.log("pos.y: "+ pos.y);
-        //  block.x = true;
-        //}
       });
     }
 

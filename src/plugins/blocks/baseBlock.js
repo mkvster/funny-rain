@@ -1,11 +1,7 @@
 (function(FunnyRain){
   "use strict";
 
-  function BaseBlock (id, blockType, blockCategory, options) {
-    var _defaults = {
-
-    };
-    var _settings = $.extend( {}, _defaults, options );
+  function BaseBlock (id, blockType, blockCategory) {
 
     var _id = id;
     this.type = blockType;
@@ -75,30 +71,6 @@
       if (timeout) {
         clearTimeout(timeout);
       }
-      //var isBomb = block.type === 'bomb';
-      //if (block.isResolved) {
-      //  var prize = isBomb ? 5 : 1;
-      //  incScore(prize);
-      //}
-      //else if (isBomb) {
-      //  decLives(1);
-      //}
-      /*
-      var parent = block.actor.parent;
-      if (parent) {
-        parent.removeChild(block.actor);
-      }
-      */
-      //removeActor(t);
-      /*
-      var blockList = status.getBlockList();
-      for(var i = 0; i < blockList.length; i++){
-        if (block === blockList[i]) {
-          blockList.splice(i,1);
-          break;
-        }
-      }
-      */
     }
 
     function removeActor (t) {
@@ -117,8 +89,6 @@
       var pos = t.body.GetPosition();
       t.actor.position.x = pos.x * scale;
       t.actor.position.y = pos.y * scale;
-      //var angle = t.body.GetAngle();
-
     }
 
     function onDblClick (t, e) {
@@ -128,21 +98,10 @@
     function resolveBlock (block, e) {
       var wasResolved = block.isResolved;
       block.isResolved = true;
-      /*
-      if (block.type === "bomb" && !wasResolved) {
-        stopBomb(block);
-        return;
-      }
-      */
       var blockGroup = collectGroup(block, e);
       blockGroup.forEach(function(body){
-        //body.group = null;
-        //body.resolveBlock = true;
         _physics.destroyBody(body);
       });
-      //if (blockGroup.length > 2) {
-      //  lunchRocket(e.clientX - 60);
-      //}
     }
 
     function collectGroup (block, e) {
@@ -192,6 +151,7 @@
     };
 
   }
+
   FunnyRain.Plugins.Blocks.BaseBlock = BaseBlock;
 
 })(FunnyRain);

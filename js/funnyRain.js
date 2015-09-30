@@ -770,7 +770,7 @@ var FunnyRain = {};
 
 })(FunnyRain);
 
-(function(FunnyRain){
+(function (FunnyRain) {
   "use strict";
 
   function BlocksFactory (options) {
@@ -864,11 +864,7 @@ var FunnyRain = {};
 (function(FunnyRain){
   "use strict";
 
-  function BaseBlock (id, blockType, blockCategory, options) {
-    var _defaults = {
-
-    };
-    var _settings = $.extend( {}, _defaults, options );
+  function BaseBlock (id, blockType, blockCategory) {
 
     var _id = id;
     this.type = blockType;
@@ -938,30 +934,6 @@ var FunnyRain = {};
       if (timeout) {
         clearTimeout(timeout);
       }
-      //var isBomb = block.type === 'bomb';
-      //if (block.isResolved) {
-      //  var prize = isBomb ? 5 : 1;
-      //  incScore(prize);
-      //}
-      //else if (isBomb) {
-      //  decLives(1);
-      //}
-      /*
-      var parent = block.actor.parent;
-      if (parent) {
-        parent.removeChild(block.actor);
-      }
-      */
-      //removeActor(t);
-      /*
-      var blockList = status.getBlockList();
-      for(var i = 0; i < blockList.length; i++){
-        if (block === blockList[i]) {
-          blockList.splice(i,1);
-          break;
-        }
-      }
-      */
     }
 
     function removeActor (t) {
@@ -980,8 +952,6 @@ var FunnyRain = {};
       var pos = t.body.GetPosition();
       t.actor.position.x = pos.x * scale;
       t.actor.position.y = pos.y * scale;
-      //var angle = t.body.GetAngle();
-
     }
 
     function onDblClick (t, e) {
@@ -991,21 +961,10 @@ var FunnyRain = {};
     function resolveBlock (block, e) {
       var wasResolved = block.isResolved;
       block.isResolved = true;
-      /*
-      if (block.type === "bomb" && !wasResolved) {
-        stopBomb(block);
-        return;
-      }
-      */
       var blockGroup = collectGroup(block, e);
       blockGroup.forEach(function(body){
-        //body.group = null;
-        //body.resolveBlock = true;
         _physics.destroyBody(body);
       });
-      //if (blockGroup.length > 2) {
-      //  lunchRocket(e.clientX - 60);
-      //}
     }
 
     function collectGroup (block, e) {
@@ -1055,19 +1014,15 @@ var FunnyRain = {};
     };
 
   }
+
   FunnyRain.Plugins.Blocks.BaseBlock = BaseBlock;
 
 })(FunnyRain);
 
-(function(target){
+(function(FunnyRain){
   "use strict";
 
-  function FruitBlock (id, blockType, blockCategory, options) {
-    var _defaults = {
-
-    };
-    var _settings = $.extend( {}, _defaults, options );
-
+  function FruitBlock (id, blockType, blockCategory) {
     FunnyRain.Plugins.Blocks.BaseBlock.call(this,
       id, blockType, blockCategory, _settings);
 
@@ -1081,19 +1036,14 @@ var FunnyRain = {};
   FunnyRain.Plugins.Blocks.FruitBlock =
     Boplex.inherit(FruitBlock, FunnyRain.Plugins.Blocks.BaseBlock);
 
-})(FunnyRain.Plugins.Blocks);
+})(FunnyRain);
 
 (function (FunnyRain){
   "use strict";
 
-  function BombBlock (id, blockType, blockCategory, options) {
-    var _defaults = {
-
-    };
-    var _settings = $.extend( {}, _defaults, options );
-
+  function BombBlock (id, blockType, blockCategory) {
     FunnyRain.Plugins.Blocks.BaseBlock.call(this,
-      id, blockType, blockCategory, _settings);
+      id, blockType, blockCategory);
 
     function adjustBomb (t) {
       t.actor.scale.x = t.actor.scale.y = 0.2;
@@ -1154,12 +1104,6 @@ var FunnyRain = {};
   "use strict";
 
   function FallManager (game) {
-    /*
-    var _defaults = {
-      fruitTypes: ["bomb","apple","peach","orange"],
-    };
-    var _settings = $.extend( {}, _defaults, options );
-    */
     var _game = game;
 
     var _isEnabled;
@@ -1205,16 +1149,6 @@ var FunnyRain = {};
       block.install(t, _physics, _view, x, function(context, block){
         _blocksFactory.destroyBlock(block);
       });
-      /*
-      block.onDestroy = function(){
-        removeBlock(block);
-      }
-      */
-      //block.body = _physics.createBody(x);
-      //block.body.block = block;
-      //block.actor = view.createActor(block.type);
-      //createActor(block);
-      //scheduleDestroyBlock(block);
     }
 
     function loopCreateBlock (t) {
@@ -1256,21 +1190,8 @@ var FunnyRain = {};
       if (!_blocksFactory) {
         return;
       }
-      //var scale = _physics.getScale();
       _blocksFactory.forEach(function(block){
         block.step();
-        /*
-        var pos = block.body.GetPosition();
-        block.actor.position.x = pos.x * scale;
-        block.actor.position.y = pos.y * scale;
-        var angle = block.body.GetAngle();
-        */
-        //block.actor.rotation = angle;
-        //if (!block.x) {
-        //  logger.log("pos.x: "+ pos.x);
-        //  logger.log("pos.y: "+ pos.y);
-        //  block.x = true;
-        //}
       });
     }
 
