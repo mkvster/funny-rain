@@ -149,6 +149,10 @@
       return getGame.call(this);
     };
 
+    BaseBlock.prototype.getPhysics = function () {
+      return _physics;
+    };
+
     BaseBlock.prototype.install = function (owner, physics, graphics, x) {
       install.call(this, this, owner, physics, graphics, x);
     };
@@ -183,6 +187,12 @@
 
     BaseBlock.prototype.compareGroup = function (otherBlock) {
       return compareGroup.call(this, this, otherBlock);
+    };
+
+    BaseBlock.prototype.scheduleRandomVisit =
+    function (timeIntervalMin, timeIntervalMax, fn) {
+      return scheduleRandomVisit.call(this, this, timeIntervalMin,
+          timeIntervalMax, fn);
     };
 
   }

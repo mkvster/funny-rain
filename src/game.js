@@ -39,7 +39,7 @@
         }
       }
     }
-    
+
     function onDblClick (e) {
       if (!_isActive) {
         startGame();
@@ -109,6 +109,10 @@
 
     Game.prototype.getRainWorld = function () {
       return _rainWorld;
+    };
+
+    Game.prototype.finish = function () {
+      return stopGame.call(this);
     };
 
     (function(){
