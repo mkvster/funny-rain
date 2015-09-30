@@ -28,11 +28,8 @@
       var x = Boplex.random(0, probabilitySettings.max);
       if (x < probabilitySettings.bomb) {
         return "bomb";
-      } else {
-        return "fruit";
       }
-
-      return result;
+      return "fruit";
     }
 
     function createActor (block, imageId) {
@@ -44,9 +41,7 @@
     function createBlock (t, x) {
       var category = getRandCategory();
       var block = _blocksFactory.createBlockByCategory(category);
-      block.install(t, _physics, _view, x, function(context, block){
-        _blocksFactory.destroyBlock(block);
-      });
+      block.install(t, _physics, _view, x);
     }
 
     function loopCreateBlock (t) {

@@ -1,9 +1,10 @@
 (function(FunnyRain){
   "use strict";
 
-  function BaseBlock (id, blockType, blockCategory) {
+  function BaseBlock (id, game, blockType, blockCategory, destroyHandler) {
 
     var _id = id;
+    var _game = game;
     this.type = blockType;
     var _category = blockCategory;
 
@@ -14,14 +15,14 @@
     var _physics;
     var _graphics;
     this.timeout;
-    var _onDestroy;
+    var _onDestroy = destroyHandler;
 
     //init();
     //function init(){
     //
     //}
 
-    function install (t, owner, physics, graphics, x, _onDestroy) {
+    function install (t, owner, physics, graphics, x) {
       _owner = owner;
       _physics = physics;
       _graphics = graphics;
@@ -29,12 +30,31 @@
       t.body.block = t;
       t.actor = _graphics.createActor(t.type);
       t.adjust();
-      t.scheduleDestroy();
+      t.scheduleNextAction();
     }
 
     function adjust (t) {
       var scale = 0.2;
       t.actor.scale.x = t.actor.scale.y = scale;
+    }
+
+    function scheduleVisit (t, timeInterval, fn) {
+
+      t.timeout = setTimeout(function(){
+        if (_owner.getIsEnabled()) {
+          t.timeout = null;
+          fn(t);
+        }
+      }, timeInterval);
+
+    }
+
+    function scheduleRandomVisit (t, timeIntervalMin, timeIntervalMax, fn) {
+      var timeInterval = Boplex.random(
+        timeIntervalMin,
+        timeIntervalMax);
+
+      scheduleVisit(t, timeInterval, fn);
     }
 
     function scheduleDestroy (t) {
@@ -43,6 +63,19 @@
         lifeTimeMax: 50000,
       };
 
+      scheduleRandomVisit(
+        t,
+        blockDestroySettings.lifeTimeMin,
+        blockDestroySettings.lifeTimeMax,
+        function() {
+          if (_physics.getIsPaused()) {
+            scheduleDestroy(t);
+            return;
+          }
+          _physics.destroyBody(t.body);
+        }
+      );
+      /*
       var lifeTime = Boplex.random(
         blockDestroySettings.lifeTimeMin,
         blockDestroySettings.lifeTimeMax);
@@ -57,7 +90,11 @@
           _physics.destroyBody(t.body);
         }
       }, lifeTime);
+      */
+    }
 
+    function scheduleNextAction (t) {
+      scheduleDestroy(t);
     }
 
     function onDestroy (t) {
@@ -102,6 +139,8 @@
       blockGroup.forEach(function(body){
         _physics.destroyBody(body);
       });
+      var scoreBoardPlugin = _game.getPluginManager().findPlugin("ScoreBoard");
+      scoreBoardPlugin.getScoreManager().changeScore(5*blockGroup.length);
     }
 
     function collectGroup (block, e) {
@@ -118,6 +157,14 @@
       return block.type === otherBlock.type;
     }
 
+    function getGame () {
+      return _game;
+    }
+
+    BaseBlock.prototype.getGame = function () {
+      return getGame.call(this);
+    };
+
     BaseBlock.prototype.install = function (owner, physics, graphics, x) {
       install.call(this, this, owner, physics, graphics, x);
     };
@@ -132,6 +179,10 @@
 
     BaseBlock.prototype.scheduleDestroy = function () {
       scheduleDestroy.call(this, this);
+    };
+
+    BaseBlock.prototype.scheduleNextAction = function () {
+      scheduleNextAction.call(this, this);
     };
 
     BaseBlock.prototype.onDestroy = function () {

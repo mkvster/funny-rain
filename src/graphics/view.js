@@ -88,6 +88,15 @@
       _renderer.render(_scene);
     }
 
+    function createWidget (widget) {
+      _scene.addChild(widget);
+      return widget;      
+    }
+
+    function destroyWidget (widget) {
+      destroyActor(widget);
+    }
+
     View.prototype.step = function () {
       step.call(this);
     };
@@ -106,6 +115,14 @@
 
     View.prototype.destroyActor = function (actor) {
       return destroyActor.call(this, actor);
+    };
+
+    View.prototype.createWidget = function (widget) {
+      return createWidget.call(this, widget);
+    };
+
+    View.prototype.destroyWidget = function (widget) {
+      return destroyWidget.call(this, widget);
     };
   }
 
