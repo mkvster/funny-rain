@@ -145,6 +145,10 @@
       return _game;
     }
 
+    function destroy (t) {
+      _physics.destroyBody(t.body);
+    }
+
     BaseBlock.prototype.getGame = function () {
       return getGame.call(this);
     };
@@ -159,6 +163,10 @@
 
     BaseBlock.prototype.adjust = function () {
       adjust.call(this, this);
+    };
+
+    BaseBlock.prototype.destroy = function () {
+      destroy.call(this, this);
     };
 
     BaseBlock.prototype.adjust = function () {

@@ -16,6 +16,10 @@
     BlocksPlugin.prototype.getBlocksFactory = function () {
       return _blocksFactory;
     };
+
+    BlocksPlugin.prototype.enable = function (isEnabled) {
+      _blocksFactory.enable(isEnabled);
+    };
   }
 
   FunnyRain.Plugins.Blocks.BlocksPlugin =

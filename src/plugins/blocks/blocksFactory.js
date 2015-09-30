@@ -3,6 +3,7 @@
 
   function BlocksFactory (game) {
     var _game = game;
+    var _isEnabled;
     var _blockClassList = [
       {
         blockCategory: "fruit",
@@ -73,6 +74,22 @@
       }
     }
 
+    function enable (t, isEnabled) {
+      if (isEnabled === _isEnabled) {
+        return;
+      }
+      _isEnabled = isEnabled;
+      if (_isEnabled) {
+        removeAllBlocks(t);
+      }
+    }
+
+    function removeAllBlocks (t) {
+      while(_blockList.length) {
+        _blockList[0].destroy();
+      }
+    }
+
     BlocksFactory.prototype.createBlockByCategory = function (blockCategory) {
       return createBlockByCategory.call(this, blockCategory);
     };
@@ -83,6 +100,10 @@
 
     BlocksFactory.prototype.destroyBlock = function (block) {
       destroyBlock.call(this, block);
+    };
+
+    BlocksFactory.prototype.enable = function (isEnabled) {
+      enable.call(this, this, isEnabled);
     };
   }
 
