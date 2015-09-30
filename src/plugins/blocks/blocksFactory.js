@@ -1,4 +1,4 @@
-(function(FunnyRain){
+(function (FunnyRain) {
   "use strict";
 
   function BlocksFactory (options) {

@@ -1,12 +1,7 @@
-(function(target){
+(function(FunnyRain){
   "use strict";
 
-  function FruitBlock (id, blockType, blockCategory, options) {
-    var _defaults = {
-
-    };
-    var _settings = $.extend( {}, _defaults, options );
-
+  function FruitBlock (id, blockType, blockCategory) {
     FunnyRain.Plugins.Blocks.BaseBlock.call(this,
       id, blockType, blockCategory, _settings);
 
@@ -20,4 +15,4 @@
   FunnyRain.Plugins.Blocks.FruitBlock =
     Boplex.inherit(FruitBlock, FunnyRain.Plugins.Blocks.BaseBlock);
 
-})(FunnyRain.Plugins.Blocks);
+})(FunnyRain);

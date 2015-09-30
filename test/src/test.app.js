@@ -1,6 +1,6 @@
 console.log("Testing FunnyRain... ");
 
+console.log("FunnyRain content");
 console.dir(FunnyRain);
-var game = new FunnyRain.Game();
 
 console.log("Test completed!");

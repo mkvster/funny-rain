@@ -1,14 +1,9 @@
 (function (FunnyRain){
   "use strict";
 
-  function BombBlock (id, blockType, blockCategory, options) {
-    var _defaults = {
-
-    };
-    var _settings = $.extend( {}, _defaults, options );
-
+  function BombBlock (id, blockType, blockCategory) {
     FunnyRain.Plugins.Blocks.BaseBlock.call(this,
-      id, blockType, blockCategory, _settings);
+      id, blockType, blockCategory);
 
     function adjustBomb (t) {
       t.actor.scale.x = t.actor.scale.y = 0.2;
